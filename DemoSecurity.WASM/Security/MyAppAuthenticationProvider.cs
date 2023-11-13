@@ -18,77 +18,63 @@ public class MyAppAuthenticationProvider : AuthenticationStateProvider
 
     public void SignOut()
     {
-        ClaimsPrincipal nessuno = new ClaimsPrincipal(new ClaimsIdentity());
-        var authState = Task.FromResult(new AuthenticationState(nessuno));
-        NotifyAuthenticationStateChanged(authState);
+        ClaimsPrincipal nobody = new ClaimsPrincipal(new ClaimsIdentity());
+        Task<AuthenticationState> authentication =
+            Task.FromResult(new AuthenticationState(nobody));
+        NotifyAuthenticationStateChanged(authentication);
     }
 
     public async Task SignIn()
     {
-        var token = await localStorage.GetItemAsync<string>("jwtToken");
-        var state = new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
-        if (string.IsNullOrEmpty(token))
-        {
-            state =  new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
-        }
-
-        var jwtToken = jwtSecurityTokenHandler.ReadJwtToken(token);
-        DateTime? expires = jwtToken.ValidTo;
-
-        if (expires.HasValue && expires > DateTime.UtcNow)
-        {
-            var claims = jwtToken.Claims.ToList();
-            var identity = new ClaimsPrincipal(
-                new ClaimsIdentity(claims, "jwt"));
-            state =  new AuthenticationState(identity);
-
-        }
-        else
-        {
-            await localStorage.RemoveItemAsync("jwtToken");
-            state = new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
-        }
-
-        var authState = Task.FromResult(state);
-        NotifyAuthenticationStateChanged(authState);
+        string savedToken = await localStorage.GetItemAsStringAsync("jwtToken");
+        JwtSecurityToken jwtSecurityToken = jwtSecurityTokenHandler.ReadJwtToken(
+           savedToken);
+        IList<Claim> claims = jwtSecurityToken.Claims.ToList();
+        claims.Add(new Claim(ClaimTypes.Name, jwtSecurityToken.Subject));
+        var user = new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt"));
+        Task<AuthenticationState> authentication =
+            Task.FromResult(new AuthenticationState(user));
+        NotifyAuthenticationStateChanged(authentication);
     }
-
 
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-		try
-		{
-			var token = await localStorage.GetItemAsync<string>("jwtToken");
 
-            if(string.IsNullOrEmpty(token))
+        try
+        {
+            string savedToken = await localStorage.GetItemAsync<string>
+                ("jwtToken");
+            if (string.IsNullOrWhiteSpace(savedToken))
             {
-                return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+                return new AuthenticationState(
+                new ClaimsPrincipal(
+                    new ClaimsIdentity()));
             }
 
-            var jwtToken = jwtSecurityTokenHandler.ReadJwtToken(token);
-            DateTime? expires = jwtToken.ValidTo;
-
-            if(expires.HasValue && expires > DateTime.Now)
-            {
-                var claims = jwtToken.Claims.ToList();
-                var identity = new ClaimsPrincipal(
-                    new ClaimsIdentity(claims, "jwt"));
-                return new AuthenticationState(identity);
-
-            }
-            else
+            JwtSecurityToken jwtSecurityToken =
+                jwtSecurityTokenHandler.ReadJwtToken(savedToken);
+            DateTime expires = jwtSecurityToken.ValidTo;
+            if (expires < DateTime.UtcNow)
             {
                 await localStorage.RemoveItemAsync("jwtToken");
-                return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+                return new AuthenticationState(
+                new ClaimsPrincipal(
+                    new ClaimsIdentity()));
             }
 
+            IList<Claim> claims = jwtSecurityToken.Claims.ToList();
+            claims.Add(new Claim(ClaimTypes.Name, jwtSecurityToken.Subject));
+
+            var user = new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt"));
+            return new AuthenticationState(user);
 
         }
-		catch (Exception ex)
-		{
-
-            return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+        catch (Exception)
+        {
+            return new AuthenticationState(
+                new ClaimsPrincipal(
+                    new ClaimsIdentity()));
         }
     }
 }

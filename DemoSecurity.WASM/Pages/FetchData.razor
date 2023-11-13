@@ -1,7 +1,6 @@
 ﻿@page "/fetchdata"
 @using Microsoft.AspNetCore.Components.Authorization;
 @inject HttpClient Http
-@inject AuthenticationStateProvider authenticationStateProvider
 
 <PageTitle>Weather forecast</PageTitle>
 
@@ -39,8 +38,12 @@ else
 }
 
 <Microsoft.AspNetCore.Components.Authorization.AuthorizeView>
-<Authorized>
+    <Authorized>
         <p>Only authenticated users can see this content.</p>
+        @foreach (var claim in context.User.Claims)
+        {
+            <p>@claim.Type: @claim.Value</p>
+        }}
     </Authorized>
     <NotAuthorized>
         <p>You are not authorized to see this content.</p>
@@ -53,6 +56,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+       
         forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json");
     }
 

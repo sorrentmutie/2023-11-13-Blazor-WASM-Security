@@ -1,4 +1,9 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@using DemoSecurity.WASM.Security;
+@using Microsoft.AspNetCore.Components.Authorization;
+@inject AuthenticationStateProvider authenticationStateProvider
+@inject NavigationManager navigationManager
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">DemoSecurity.WASM</a>
         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
@@ -32,9 +37,9 @@
         <div class="nav-item px-3">
             <Microsoft.AspNetCore.Components.Authorization.AuthorizeView>
                 <Authorized>
-                    <NavLink class="nav-link" href="logout">
-                        <span class="oi oi-account-logout" aria-hidden="true"></span> Logout
-                    </NavLink>
+                    <button class="btn btn-primary" @onclick="SignOut">
+                        <span class="oi oi-account-logout" aria-hidden="true"></span> Sign Out
+                    </button>
                 </Authorized>
                 <NotAuthorized>
                     <NavLink class="nav-link" href="login">
@@ -55,5 +60,11 @@
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
+    }
+
+    private void SignOut()
+    {
+        ((MyAppAuthenticationProvider)authenticationStateProvider).SignOut();
+        navigationManager.NavigateTo("/login");
     }
 }
