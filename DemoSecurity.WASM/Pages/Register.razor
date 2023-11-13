@@ -1,0 +1,42 @@
+﻿@page "/register"
+@using DemoSecurity.Shared;
+@inject HttpClient httpClient
+
+<h3>Register</h3>
+
+<EditForm Model="newUser" OnValidSubmit="() => Submit()">
+    <DataAnnotationsValidator/> 
+    <div class="form-group">
+        <label for="email">E-mail</label>
+        <InputText id="email" class="form-control" @bind-Value="newUser.Email"></InputText>
+        <ValidationMessage For="@(() => newUser.Email)"/>
+    </div>
+    <div class="form-group">
+        <label for="password">Password</label>
+        <InputText id="password" type="password" class="form-control" @bind-Value="newUser.Password"></InputText>
+        <ValidationMessage For="@(() => newUser.Password)" />
+    </div>
+
+    <button type="submit">OK</button>
+
+</EditForm>
+@errors
+@success
+
+@code {
+    private RegisterRequest newUser = new();
+    private string? errors;
+    private bool success;
+
+    private async Task Submit()
+    {
+        var response = await httpClient.PostAsJsonAsync("https://localhost:7040/accounts/register", newUser);
+        if (response.IsSuccessStatusCode)
+        {
+            success = true;
+        } else
+        {
+            errors = await response.Content.ReadAsStringAsync();
+        }
+    }
+}
