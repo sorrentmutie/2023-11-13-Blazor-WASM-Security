@@ -1,29 +1,50 @@
 ﻿@page "/login"
 @inject HttpClient httpClient
-@inject ILocalStorageService localStorage;
+@inject ILocalStorageService localStorage
+@inject AuthenticationStateProvider authenticationStateProvider
+@inject NavigationManager navigationManager
+
 @using Blazored.LocalStorage;
 @using DemoSecurity.Shared;
+@using DemoSecurity.WASM.Security;
+@using Microsoft.AspNetCore.Components.Authorization;
+@if(seeForm == true)
+{
+    <EditForm Model="user" OnValidSubmit="() => Submit()">
+        <DataAnnotationsValidator />
+        <div class="form-group">
+            <label for="email">E-mail</label>
+            <InputText id="email" class="form-control" @bind-Value="user.Email"></InputText>
+            <ValidationMessage For="@(() => user.Email)" />
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <InputText id="password" type="password" class="form-control" @bind-Value="user.Password"></InputText>
+            <ValidationMessage For="@(() => user.Password)" />
+        </div>
 
-<EditForm Model="user" OnValidSubmit="() => Submit()">
-    <DataAnnotationsValidator />
-    <div class="form-group">
-        <label for="email">E-mail</label>
-        <InputText id="email" class="form-control" @bind-Value="user.Email"></InputText>
-        <ValidationMessage For="@(() => user.Email)" />
-    </div>
-    <div class="form-group">
-        <label for="password">Password</label>
-        <InputText id="password" type="password" class="form-control" @bind-Value="user.Password"></InputText>
-        <ValidationMessage For="@(() => user.Password)" />
-    </div>
+        <button type="submit">OK</button>
 
-    <button type="submit">OK</button>
+    </EditForm>
 
-</EditForm>
+}
 @message
+<AuthorizeView>
+<Authorized>
+        <p>Only authenticated users can see this content.</p>
+        @foreach(var claim in context.User.Claims){
+            <p>@claim.Type: @claim.Value</p>
+        }}
+    </Authorized>
+    <NotAuthorized>
+        <p>You are not authorized to see this content.</p>
+    </NotAuthorized>
+</AuthorizeView>
+
 
 @code {
     private string message = "";
+    private bool seeForm = true;
     private async Task Submit()
     {
         var response = await httpClient.PostAsJsonAsync("https://localhost:7040/accounts/login", user);
@@ -32,9 +53,14 @@
             message = "OK";
             string jwtToken = await response.Content.ReadAsStringAsync();
             await localStorage.SetItemAsStringAsync("jwtToken", jwtToken);
+            await ((MyAppAuthenticationProvider)authenticationStateProvider).SignIn();
+            navigationManager.NavigateTo("/fetchdata");
+            message = "Sono loggato";
+            seeForm = false;
         } else
         {
             message = response.StatusCode.ToString();
+            seeForm = true;
         }
     }
     private RegisterRequest user = new();

@@ -44,7 +44,7 @@ namespace DemoSecurity.API.Data
 
             var jwtSecurityToken = new JwtSecurityToken
                 (configuration["Jwt:Issuer"], configuration["Jwt:Audience"],
-                claims, DateTime.UtcNow, DateTime.UtcNow.AddMinutes(10),
+                claims, DateTime.Now, DateTime.Now.AddMinutes(10),
                 credentials);
             return new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
 

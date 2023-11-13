@@ -1,5 +1,7 @@
 ﻿@page "/fetchdata"
+@using Microsoft.AspNetCore.Components.Authorization;
 @inject HttpClient Http
+@inject AuthenticationStateProvider authenticationStateProvider
 
 <PageTitle>Weather forecast</PageTitle>
 
@@ -35,6 +37,16 @@ else
         </tbody>
     </table>
 }
+
+<Microsoft.AspNetCore.Components.Authorization.AuthorizeView>
+<Authorized>
+        <p>Only authenticated users can see this content.</p>
+    </Authorized>
+    <NotAuthorized>
+        <p>You are not authorized to see this content.</p>
+    </NotAuthorized>
+</Microsoft.AspNetCore.Components.Authorization.AuthorizeView>
+
 
 @code {
     private WeatherForecast[]? forecasts;
