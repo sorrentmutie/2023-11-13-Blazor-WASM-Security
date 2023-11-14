@@ -8,11 +8,13 @@ namespace DemoSecurity.WASM.Security;
 public class MyAppAuthenticationProvider : AuthenticationStateProvider
 {
     private readonly ILocalStorageService localStorage;
+    private readonly HttpClient httpClient;
     private JwtSecurityTokenHandler jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
 
-    public MyAppAuthenticationProvider(ILocalStorageService localStorage)
+    public MyAppAuthenticationProvider(ILocalStorageService localStorage, HttpClient httpClient)
     {
         this.localStorage = localStorage;
+        this.httpClient = httpClient;
     }
 
 

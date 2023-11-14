@@ -1,6 +1,8 @@
 ﻿@page "/fetchdata"
+@using Blazored.LocalStorage;
 @using Microsoft.AspNetCore.Components.Authorization;
 @inject HttpClient Http
+@inject ILocalStorageService localStorageService
 
 <PageTitle>Weather forecast</PageTitle>
 
@@ -56,8 +58,12 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-       
-        forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json");
+        Http.DefaultRequestHeaders.Authorization =
+             new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", 
+             await localStorageService.GetItemAsStringAsync("jwtToken"));
+
+
+        forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("https://localhost:7040/weatherforecast");
     }
 
     public class WeatherForecast

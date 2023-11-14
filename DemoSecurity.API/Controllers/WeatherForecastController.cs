@@ -4,10 +4,9 @@ using Microsoft.Identity.Web.Resource;
 
 namespace DemoSecurity.API.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "SpecialPolicy")]
     [ApiController]
     [Route("[controller]")]
-    [RequiredScope(RequiredScopesConfigurationKey = "AzureAd:Scopes")]
     public class WeatherForecastController : ControllerBase
     {
         private static readonly string[] Summaries = new[]

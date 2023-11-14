@@ -22,6 +22,8 @@ namespace DemoSecurity.API.Data
             var symmetricSecurityKey = new SymmetricSecurityKey
                 (Encoding.UTF8.GetBytes(configuration["Jwt:Key"] ?? ""));
 
+            var userClaims = await userManager.GetClaimsAsync(user);
+
             var roles = await userManager.GetRolesAsync(user);
 
             var credentials = new SigningCredentials(
@@ -36,6 +38,12 @@ namespace DemoSecurity.API.Data
                     claims.Add(new Claim(ClaimTypes.Role, role));   
                 }
             }
+
+            if(userClaims != null)
+            {
+                claims.AddRange(userClaims);
+            }
+
 
             claims.Add(new Claim(ClaimTypes.Name, user.UserName!));
             claims.Add(new Claim(ClaimTypes.Email, user.Email!));

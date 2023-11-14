@@ -16,6 +16,17 @@ builder.Services.AddDefaultIdentity<IdentityUser>()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("SpecialPolicy", policy =>
+      { 
+          policy.RequireRole("User");
+          policy.RequireClaim("MIoClaim", "MiaValore");
+      });
+   
+});
+
+
 builder.Services.AddCors(o => o.AddPolicy("AllowAll", builder =>
 {
     builder.AllowAnyOrigin()
